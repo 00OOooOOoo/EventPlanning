@@ -9,6 +9,66 @@ def parse_time_col(series):
         dayfirst=False
     )
 
+def extract_profile_from_freetext(free_text: str) -> dict:
+    """
+    【接口预留】从 volunteer 的自由文本回答中提取结构化信息。
+    
+    MVP 阶段直接返回空值，后续接入 Kimi API 时只需替换这个函数内部的实现，
+    loader.py 其他部分和 solver.py / llm_scorer.py 完全不需要改动。
+
+    未来实现思路：
+    - 调用 Kimi API，prompt 要求它从 free_text 里提取技能、偏好、排斥信息
+    - 返回格式保持不变，solver 直接消费
+
+    Args:
+        free_text: volunteer 填写的自由文本，例如
+                   "我喜欢拍照，有单反。不太擅长搬重物，腰不好。"
+
+    Returns:
+        dict，格式固定为：
+        {
+            "v_skills":      str,  # 提取出的技能
+            "v_preference":  str,  # 提取出的偏好
+            "v_not_willing": str   # 提取出的排斥项
+        }
+    """
+    # ── MVP 阶段：直接返回空值，不影响现有流程 ── 
+    #以后要接入 Kimi 的时候，只需要把注释掉的那段取消注释，
+    #删掉 return {"v_skills": "", ...} 那三行，完成。
+    return {
+        "v_skills":      "",
+        "v_preference":  "",
+        "v_not_willing": ""
+    }
+
+    # ── 未来替换成这段（现在注释掉）──────────────
+    # from openai import OpenAI
+    # client = OpenAI(
+    #     api_key=os.environ.get("MOONSHOT_API_KEY"),
+    #     base_url="https://api.moonshot.cn/v1"
+    # )
+    # response = client.chat.completions.create(
+    #     model="moonshot-v1-8k",
+    #     messages=[{
+    #         "role": "user",
+    #         "content": f"""
+    #         从下面这段 volunteer 的自我介绍中，提取三类信息。
+    #         只返回 JSON，不要任何解释。
+    #
+    #         自我介绍：{free_text}
+    #
+    #         返回格式：
+    #         {{
+    #             "v_skills": "提取到的技能，用逗号分隔",
+    #             "v_preference": "提取到的偏好描述",
+    #             "v_not_willing": "提取到的不愿意做的事"
+    #         }}
+    #         """
+    #     }]
+    # )
+    # import json
+    # return json.loads(response.choices[0].message.content)
+
 def load_data():
     volunteers = pd.read_excel(DATA_PATH, sheet_name="volunteer_profile")
     time_slots  = pd.read_excel(DATA_PATH, sheet_name="volunteer_time")
