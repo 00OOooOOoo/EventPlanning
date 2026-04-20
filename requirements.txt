@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+openpyxl
+ortools
+sentence-transformers
+openai
+pydantic
