@@ -102,11 +102,11 @@ def get_volunteer_tasks(v_id: str):
         if v_row.empty:
             raise HTTPException(status_code=404, detail=f"找不到 volunteer: {v_id}")
 
-        v_name = v_row.iloc[0]["v_name"]
+        v_name = str(v_row.iloc[0]["v_name"])
 
         # 找出该 volunteer 被分配到的所有任务
         my_tasks = []
-        for task in results:
+        for task in _cached_results:
             assigned_ids = [v["v_id"] for v in task["assigned"]]
             if v_id not in assigned_ids:
                 continue
@@ -118,15 +118,32 @@ def get_volunteer_tasks(v_id: str):
                 if v["v_id"] != v_id
             ]
 
+            task_rows = tasks[tasks["task_id"] == task["task_id"]]
+            if task_rows.empty:
+                continue
+            task_row = task_rows.iloc[0]
+
+            # 安全地读取每个字段，NaN 一律转成空字符串
+            def safe_str(val):
+                import math
+                if val is None:
+                    return ""
+                try:
+                    if math.isnan(float(val)):
+                        return ""
+                except (ValueError, TypeError):
+                    pass
+                return str(val).strip()
+
             my_tasks.append({
                 "task_id":    task["task_id"],
                 "task_name":  task["task_name"],
                 "time_start": task["time_start"],
                 "time_end":   task["time_end"],
-                "location":   tasks.loc[tasks["task_id"] == task["task_id"], "location"].values[0],
-                "detail":     tasks.loc[tasks["task_id"] == task["task_id"], "detail"].values[0],
-                "1st_lead":   task["1st_lead"],
-                "2nd_lead":   task["2nd_lead"],
+                "location":   safe_str(task_row["location"]),
+                "detail":     safe_str(task_row["detail"]),
+                "1st_lead":   task.get("1st_lead", ""),
+                "2nd_lead":   task.get("2nd_lead", ""),
                 "teammates":  teammates,
             })
 
@@ -139,4 +156,6 @@ def get_volunteer_tasks(v_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

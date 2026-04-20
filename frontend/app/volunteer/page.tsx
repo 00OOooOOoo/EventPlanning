@@ -100,18 +100,18 @@ export default function VolunteerPage() {
               <p className="text-xs text-gray-400 mb-0.5">你好</p>
               <p className="text-xl font-semibold">{data.v_name}</p>
               <p className="text-sm text-gray-400 mt-1">
-                本次活动共分配了 {data.my_tasks.length} 个任务给你
+                本次活动共分配了 {data.my_tasks?.length ?? 0} 个任务给你
               </p>
             </div>
 
             {/* 任务列表 */}
-            {data.my_tasks.length === 0 ? (
+            {(data.my_tasks ?? []).length === 0 ? (
               <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-400 text-sm">
                 暂时没有分配任务给你，请联系 Organizer 确认
               </div>
             ) : (
               <div className="space-y-4">
-                {data.my_tasks.map(task => (
+                {(data.my_tasks ?? []).map(task => (
                   <div key={task.task_id} className="bg-white border border-gray-200 rounded-xl p-5">
 
                     {/* 任务名 + 时间 */}
